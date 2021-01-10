@@ -2,7 +2,7 @@
 .oql-render::before{
     content: "OQL";
     background: red;
-    border-radius: 30px;
+    border-radius: 10px;
     color: #fff;
     font-size: 11px;
     margin-top: 0px;
