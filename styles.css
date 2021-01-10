@@ -1,0 +1,15 @@
+/* OQL badge to show this is the result */
+.oql-render::before{
+    content: "OQL";
+    background: red;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 11px;
+    margin-top: 0px;
+    min-width: 20px;
+    padding: 2px;
+    margin-right: 10px;
+    position: absolute;
+    text-align: center;
+    right: 0px;
+}
