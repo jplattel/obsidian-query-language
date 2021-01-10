@@ -23,8 +23,6 @@ export default class QueryResultRenderer {
 		// Get the search index instance and Search with query provided
 		let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
 
-		console.log(searchResults);
-
 		let result; 
 
 		if (!nodeConfig.template) {
