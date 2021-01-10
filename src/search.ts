@@ -1,34 +1,40 @@
 import Fuse from 'fuse.js';
-import type FuseResult from 'fuse.js';
 import { TFile } from 'obsidian';
 
+export interface IMarkdownFile {
+    title: string;
+    path: string;
+    content: string;
+    created: number;
+    modified: number;
+}
 // The search index behaves as a singleton, thus
 // we should only call it with getInstance() to get
 // the current instance
-export default class SearchIndex {
-    
-    // Single instance for the singleton
-    private static instance: SearchIndex;
-    
+class FuseSearchIndex{    
     // This contains the actual Fuse search object
-    private searchIndex: any;
+    private searchIndex: Fuse<IMarkdownFile>;
 
-    // Get the singleton for use:
-    public static getInstance(): SearchIndex {
-        // If the class has no instance yet, create 
-        // an empty search index
-        if (!SearchIndex.instance) {
-            SearchIndex.instance = new SearchIndex();
-        }
-        return SearchIndex.instance;
-    }
-    
     // Provide a set of markdown files to build a index
     // with for example this.app.vault.getMarkdownFiles()
-    buildIndex(markdownFiles: TFile[]){
-        console.log(`[OQL] Indexing ${markdownFiles.length} files..`)
+    public buildIndex(files: TFile[]){
+        // Log the amount of files in debug
+        console.debug(`[OQL] Indexing ${files.length} files..`)
+
+        // Remap the fields of each markdown file
+        let markdownFiles = files.map((markdownFile) => {
+            return <IMarkdownFile> {
+                title: markdownFile.basename,
+                path: markdownFile.path,
+                content: markdownFile.cachedData,
+                created: markdownFile.stat.ctime,
+                modified: markdownFile.stat.mtime,
+            }
+        })
+
+        // Store the search index within this singleton
 		this.searchIndex = new Fuse(markdownFiles, {
-			keys: ['path', 'cachedData', 'name'],
+			keys: ['title', 'path', 'content', 'created', 'modified'],
             useExtendedSearch: true,
             includeScore: true,
         });
@@ -39,8 +45,12 @@ export default class SearchIndex {
     // docs: https://fusejs.io/api/query.html
     
     // TODO, throw an error if the index is empty!
-    search(query: String): FuseResult[] {
-        console.log(`[OQL] Searching for: ${query}`)
-        return this.searchIndex.search(query)
+    public search(query: string): IMarkdownFile[] {
+        console.debug(`[OQL] Searching for: ${query}`)
+        return this.searchIndex.search(query).map(searchResult => {
+            return searchResult.item
+        })
     }
 }
+
+export const SearchIndex = new FuseSearchIndex() 

@@ -1,6 +1,15 @@
 import { MarkdownPostProcessor, MarkdownPostProcessorContext, MarkdownPreviewRenderer, MarkdownRenderer, Notice} from 'obsidian';
 import * as Yaml from 'yaml';
-import SearchIndex from 'search';
+import { SearchIndex, IMarkdownFile } from 'search';
+import Fuse from 'fuse.js';
+
+interface NodeConfig {
+	readonly name: string;
+	readonly query: string;
+	template: string;
+	limit?: number;
+	wrapper?: string;
+}
 
 export default class QueryResultRenderer {
 	static postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
@@ -9,21 +18,22 @@ export default class QueryResultRenderer {
 		if (!node) return // If it's not an oql block, return 
 
 		// Try parsing the block yaml inside for all the required settings
-		const nodeConfig = Yaml.parse(node.textContent);
+		const nodeConfig: NodeConfig = Yaml.parse(node.textContent);
 
 		// Get the search index instance and Search with query provided
-		const searchIndex = SearchIndex.getInstance()
-		const searchResults = searchIndex.search(nodeConfig.query)
+		let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
+
+		console.log(searchResults);
 
 		let result; 
 
-		if (!nodeConfig.output) {
+		if (!nodeConfig.template) {
 			// TODO: (render a warning no output is configured)
-		} else if (nodeConfig.output === 'list') {
+		} else if (nodeConfig.template === 'list') {
 			result = QueryResultRenderer.renderList(searchResults, nodeConfig)
-		} else if (nodeConfig.output === 'table') {
+		} else if (nodeConfig.template === 'table') {
 			result = QueryResultRenderer.renderTable(searchResults, nodeConfig)
-		} else if (typeof nodeConfig.output === 'string') {
+		} else if (typeof nodeConfig.template === 'string') {
 			result = QueryResultRenderer.renderString(searchResults, nodeConfig)
 		} else {
 			// TODO: (render a warning div instead?)
@@ -31,26 +41,27 @@ export default class QueryResultRenderer {
 
 		// Replace the node with the result node
 		if (result) {
-			result.addClass('oql-render')
+			result.addClass('oql-render') // This renders the OQL badge? Maybe make it optional?
 			el.replaceChild(result, node)
 		}
 	}
 
-	public static renderNoteLink(note) {
+	public static renderLink(markdownFileResult: IMarkdownFile) {
 		let listItemLink = document.createElement('a');
 
 		// <a data-href="2021-01-09" href="2021-01-09" class="internal-link" target="_blank" rel="noopener">&lt; Yesterday</a>
 		listItemLink.addClass('internal-link');
-		listItemLink.setAttribute('a', note.item.basename);
-		listItemLink.setAttribute('data-href', note.item.basename);
-		listItemLink.innerText = note.item.basename;
+		listItemLink.setAttribute('a', markdownFileResult.title);
+		listItemLink.setAttribute('data-href', markdownFileResult.title);
+		listItemLink.innerText = markdownFileResult.title;
 		
 		return listItemLink
 	}
 
-	public static renderString(searchResults, nodeConfig): Element {
-		console.log(`[OQL] Rendering string, with ${searchResults.length} results`);
-		let output = nodeConfig.output;
+	public static renderString(searchResults: IMarkdownFile[], nodeConfig: NodeConfig): Element {
+		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
+
+		let output = nodeConfig.template;
 
 		// Replace placeholders for the 'name' in the ouput
 		if (nodeConfig.name) {
@@ -59,7 +70,7 @@ export default class QueryResultRenderer {
 
 		// Replace placeholders for the 'count' in the ouput
 		if (searchResults) {
-			output = output.replace("{count}", searchResults.length)
+			output = output.replace("{count}", searchResults.length.toString())
 		}
 		// Create the wrapper element (or use a span by default) 
 		// and put the result of the query inside
@@ -68,9 +79,9 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderList(searchResults, nodeConfig) {
-		console.log(`[OQL] Rendering list, with ${searchResults.length} results`);
-		let output = nodeConfig.output;
+	public static renderList(searchResults: IMarkdownFile[], nodeConfig: NodeConfig) {
+		console.debug(`[OQL] Rendering list, with ${searchResults.length} results`);
+		let output = nodeConfig.template;
 		
 		let result = document.createElement('ul');
 
@@ -78,16 +89,16 @@ export default class QueryResultRenderer {
 			searchResults = searchResults.slice(0,nodeConfig.limit)
 		}
 
-		searchResults.forEach(note => {
+		searchResults.forEach(markdownFileResult => {
 			let listItem = document.createElement('li');
-			listItem.appendChild(QueryResultRenderer.renderNoteLink(note));
+			listItem.appendChild(QueryResultRenderer.renderLink(markdownFileResult));
 			result.appendChild(listItem);
 		});		
 		return result
 	}
 
-	public static renderTable(searchResults, nodeConfig) {
-		console.log(`[OQL] Rendering table, with ${searchResults.length} results`);
+	public static renderTable(searchResults: IMarkdownFile[], nodeConfig: NodeConfig) {
+		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
 		// TODO:
 	}
 }
