@@ -1,9 +1,11 @@
 /* OQL badge to show this is the result */
 .oql-badge::before{
     content: "OQL";
-    background: red;
-    border-radius: 10px;
-    color: #fff;
+    background-color: #d1ecf1;
+    border-radius: 5px;
+    color: #0c5460;
+    border-color: #bee5eb;
+    border: 1px solid;
     font-size: 11px;
     margin-top: 0px;
     min-width: 20px;

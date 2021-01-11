@@ -6,6 +6,7 @@ import DebugRenderer from 'debug';
 export interface OQLConfig {
 	readonly name: string;
 	readonly query: string;
+	badge: boolean
 	template: string;
 	limit?: number;
 	wrapper?: string;
@@ -17,36 +18,37 @@ export default class QueryResultRenderer {
 		// Check if the element matches an oql code block
 		const node = el.querySelector('pre[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
-
-		let result: Element; 
+		
+		// This is the most fragile part, parsin the settings and running the query:
 		try {
 			// Try parsing the block yaml inside for all the required settings
-			const nodeConfig: OQLConfig = Yaml.parse(node.textContent);
+			let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
 
 			// Get the search index instance and Search with query provided
-			let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
-		} catch {
-			result = QueryResultRenderer.renderError("Unable to determine configuration for OQL block")
+			let searchResults: IMarkdownFile[] = SearchIndex.search(oqlConfig.query)
+		} catch (error) {
+			// If we are unable to parse, render an error:
+			let result = QueryResultRenderer.renderError(`Unable to determine configuration for OQL block: \n\n ${error}`)
 			el.replaceChild(result, node)
 			return
 		}
 
-		if (!nodeConfig.template) {
-			result = QueryResultRenderer.renderError("No template defined in the OQL block");
-		} else if (nodeConfig.template === 'list') {
-			result = QueryResultRenderer.renderList(searchResults, nodeConfig)
-		} else if (nodeConfig.template === 'table') {
-			result = QueryResultRenderer.renderTable(searchResults, nodeConfig)
-		} else if (typeof nodeConfig.template === 'string') {
-			result = QueryResultRenderer.renderString(searchResults, nodeConfig)
+		if (!oqlConfig.template) {
+			let result = QueryResultRenderer.renderError("No template defined in the OQL block");
+		} else if (oqlConfig.template === 'list') {
+			let result = QueryResultRenderer.renderList(searchResults, oqlConfig)
+		} else if (oqlConfig.template === 'table') {
+			let result = QueryResultRenderer.renderTable(searchResults, oqlConfig)
+		} else if (typeof oqlConfig.template === 'string') {
+			let result = QueryResultRenderer.renderString(searchResults, oqlConfig)
 		}
 
-		let debug: Element | void = DebugRenderer.render(searchResults, nodeConfig)
+		let debug: Element | void = DebugRenderer.render(searchResults, oqlConfig)
 		
 		// Replace the node with the result node
 		if (result) {
 			 // This renders the OQL badge? Maybe make it optional?
-			result.addClass('oql-badge')
+			if (!oqlConfig.badge === false) result.addClass('oql-badge')
 
 			// Render debug
 			if (debug) result.prepend(debug);
@@ -56,7 +58,7 @@ export default class QueryResultRenderer {
 		}
 	}
 
-	public static renderError(errorMessage: String): Element {
+	public static renderError(errorMessage: string): Element {
 		let errorElement = document.createElement('div');
 		errorElement.addClass('oql-error')
 		errorElement.innerText = errorMessage;
@@ -75,14 +77,14 @@ export default class QueryResultRenderer {
 		return listItemLink
 	}
 
-	public static renderString(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
+	public static renderString(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
 
-		let output = nodeConfig.template;
+		let output = oqlConfig.template;
 
 		// Replace placeholders for the 'name' in the ouput
-		if (nodeConfig.name) {
-			output = output.replace("{name}", nodeConfig.name)
+		if (oqlConfig.name) {
+			output = output.replace("{name}", oqlConfig.name)
 		}
 
 		// Replace placeholders for the 'count' in the ouput
@@ -91,19 +93,19 @@ export default class QueryResultRenderer {
 		}
 		// Create the wrapper element (or use a span by default) 
 		// and put the result of the query inside
-		let result = document.createElement(nodeConfig.wrapper || 'span')
+		let result = document.createElement(oqlConfig.wrapper || 'span')
 		result.innerHTML = output
 		return result
 	}
 
-	public static renderList(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
+	public static renderList(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering list, with ${searchResults.length} results`);
-		let output = nodeConfig.template;
+		let output = oqlConfig.template;
 		
 		let result = document.createElement('ul');
 
-		if (nodeConfig.limit) {
-			searchResults = searchResults.slice(0,nodeConfig.limit)
+		if (oqlConfig.limit) {
+			searchResults = searchResults.slice(0,oqlConfig.limit)
 		}
 
 		searchResults.forEach(markdownFileResult => {
@@ -114,7 +116,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderTable(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
+	public static renderTable(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
 		
 		let result = document.createElement('table');
