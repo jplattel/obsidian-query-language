@@ -18,40 +18,49 @@ export default class QueryResultRenderer {
 		const node = el.querySelector('pre[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
 
-		// Try parsing the block yaml inside for all the required settings
-		const nodeConfig: OQLConfig = Yaml.parse(node.textContent);
-
-		// Get the search index instance and Search with query provided
-		let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
-		console.log(searchResults[0])
-
 		let result: Element; 
+		try {
+			// Try parsing the block yaml inside for all the required settings
+			const nodeConfig: OQLConfig = Yaml.parse(node.textContent);
+
+			// Get the search index instance and Search with query provided
+			let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
+		} catch {
+			result = QueryResultRenderer.renderError("Unable to determine configuration for OQL block")
+			el.replaceChild(result, node)
+			return
+		}
 
 		if (!nodeConfig.template) {
-			// TODO: (render a warning no output is configured)
+			result = QueryResultRenderer.renderError("No template defined in the OQL block");
 		} else if (nodeConfig.template === 'list') {
 			result = QueryResultRenderer.renderList(searchResults, nodeConfig)
 		} else if (nodeConfig.template === 'table') {
 			result = QueryResultRenderer.renderTable(searchResults, nodeConfig)
 		} else if (typeof nodeConfig.template === 'string') {
 			result = QueryResultRenderer.renderString(searchResults, nodeConfig)
-		} else {
-			// TODO: (render a warning div instead?)
 		}
 
-		
 		let debug: Element | void = DebugRenderer.render(searchResults, nodeConfig)
 		
 		// Replace the node with the result node
 		if (result) {
 			 // This renders the OQL badge? Maybe make it optional?
-			result.addClass('oql-render')
+			result.addClass('oql-badge')
 
 			// Render debug
 			if (debug) result.prepend(debug);
-				
+			
+			// Finally replace the result
 			el.replaceChild(result, node)
 		}
+	}
+
+	public static renderError(errorMessage: String): Element {
+		let errorElement = document.createElement('div');
+		errorElement.addClass('oql-error')
+		errorElement.innerText = errorMessage;
+		return errorElement
 	}
 
 	public static renderLink(markdownFileResult: IMarkdownFile) {

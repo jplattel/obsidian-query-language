@@ -1,5 +1,5 @@
 /* OQL badge to show this is the result */
-.oql-render::before{
+.oql-badge::before{
     content: "OQL";
     background: red;
     border-radius: 10px;
@@ -17,4 +17,12 @@
 .oql-debug {
     max-height: 250px;
     overflow-y: scroll;
+}
+
+.oql-error {
+    padding: 10px;
+    border-radius: 3px;
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
 }
