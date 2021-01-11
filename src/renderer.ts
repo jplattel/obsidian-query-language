@@ -2,13 +2,14 @@ import { MarkdownPostProcessor, MarkdownPostProcessorContext, MarkdownPreviewRen
 import * as Yaml from 'yaml';
 import { SearchIndex, IMarkdownFile } from 'search';
 import Fuse from 'fuse.js';
-
-interface NodeConfig {
+import DebugRenderer from 'debug';
+export interface OQLConfig {
 	readonly name: string;
 	readonly query: string;
 	template: string;
 	limit?: number;
 	wrapper?: string;
+	debug?: boolean;
 }
 
 export default class QueryResultRenderer {
@@ -18,12 +19,13 @@ export default class QueryResultRenderer {
 		if (!node) return // If it's not an oql block, return 
 
 		// Try parsing the block yaml inside for all the required settings
-		const nodeConfig: NodeConfig = Yaml.parse(node.textContent);
+		const nodeConfig: OQLConfig = Yaml.parse(node.textContent);
 
 		// Get the search index instance and Search with query provided
 		let searchResults: IMarkdownFile[] = SearchIndex.search(nodeConfig.query)
+		console.log(searchResults[0])
 
-		let result; 
+		let result: Element; 
 
 		if (!nodeConfig.template) {
 			// TODO: (render a warning no output is configured)
@@ -37,9 +39,17 @@ export default class QueryResultRenderer {
 			// TODO: (render a warning div instead?)
 		}
 
+		
+		let debug: Element | void = DebugRenderer.render(searchResults, nodeConfig)
+		
 		// Replace the node with the result node
 		if (result) {
-			result.addClass('oql-render') // This renders the OQL badge? Maybe make it optional?
+			 // This renders the OQL badge? Maybe make it optional?
+			result.addClass('oql-render')
+
+			// Render debug
+			if (debug) result.prepend(debug);
+				
 			el.replaceChild(result, node)
 		}
 	}
@@ -56,7 +66,7 @@ export default class QueryResultRenderer {
 		return listItemLink
 	}
 
-	public static renderString(searchResults: IMarkdownFile[], nodeConfig: NodeConfig): Element {
+	public static renderString(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
 
 		let output = nodeConfig.template;
@@ -77,7 +87,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderList(searchResults: IMarkdownFile[], nodeConfig: NodeConfig) {
+	public static renderList(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering list, with ${searchResults.length} results`);
 		let output = nodeConfig.template;
 		
@@ -95,8 +105,11 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderTable(searchResults: IMarkdownFile[], nodeConfig: NodeConfig) {
+	public static renderTable(searchResults: IMarkdownFile[], nodeConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
-		// TODO:
+		
+		let result = document.createElement('table');
+
+		return result
 	}
 }

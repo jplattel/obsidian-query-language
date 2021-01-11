@@ -6,7 +6,7 @@ This is a plugin for Obsidian (https://obsidian.md) that allows you to query you
 
 Clone this repository in the `.obsidian/plugins` folder and enable it in the settings of Obsidian. 
 
-## Working with the plugin
+## Working with the plugin & examples
 
 You can query your vault with a `oql` code block, for example:
 

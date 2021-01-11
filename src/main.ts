@@ -38,6 +38,8 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 	// has access to the markdown files
 	rebuildIndex(){
 		console.debug('[OQL] Rebuilding search index..');
+		console.log(this.app.vault.getMarkdownFiles()[0]);
+		
 		SearchIndex.buildIndex(this.app.vault.getMarkdownFiles())
 	}
 }

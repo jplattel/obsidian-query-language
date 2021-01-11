@@ -13,3 +13,8 @@
     text-align: center;
     right: 0px;
 }
+
+.oql-debug {
+    max-height: 250px;
+    overflow-y: scroll;
+}
