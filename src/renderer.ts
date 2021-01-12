@@ -19,20 +19,14 @@ export default class QueryResultRenderer {
 		const node = el.querySelector('pre[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
 		
-		// This is the most fragile part, parsin the settings and running the query:
-		try {
-			// Try parsing the block yaml inside for all the required settings
-			let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
+		// Try parsing the block yaml inside for all the required settings
+		let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
 
-			// Get the search index instance and Search with query provided
-			let searchResults: IMarkdownFile[] = SearchIndex.search(oqlConfig.query)
-		} catch (error) {
-			// If we are unable to parse, render an error:
-			let result = QueryResultRenderer.renderError(`Unable to determine configuration for OQL block: \n\n ${error}`)
-			el.replaceChild(result, node)
-			return
-		}
+		// Get the search index instance and Search with query provided
+		let searchResults: IMarkdownFile[] = SearchIndex.search(oqlConfig.query)
 
+		let result = document.createElement('span');
+	
 		if (!oqlConfig.template) {
 			let result = QueryResultRenderer.renderError("No template defined in the OQL block");
 		} else if (oqlConfig.template === 'list') {

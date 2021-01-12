@@ -108,6 +108,11 @@ concat-map@0.0.1:
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz"
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
+datascript@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/datascript/-/datascript-1.0.3.tgz#6a47c2b9e344e67842b4acc227ca91e422d67070"
+  integrity sha512-7KAIk5b3nlWzyafZq3SEitbal6IVJWXYnRDhnBcntDxdmjqV5zCaRReBAwZgOIlVaDRSV33pE8FhgaxEvSQItA==
+
 deepmerge@^4.2.2:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.2.2.tgz"

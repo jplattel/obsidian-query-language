@@ -2,7 +2,6 @@ import { MarkdownPreviewRenderer, App, Notice, Plugin, Vault, PluginManifest, fu
 import { SearchIndex } from './search';
 import QueryResultRenderer from './renderer';
 import * as Yaml from 'yaml';
-
 export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 	async onload() {
@@ -39,7 +38,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 	rebuildIndex(){
 		console.debug('[OQL] Rebuilding search index..');
 		console.log(this.app.vault.getMarkdownFiles()[0]);
-		
+
 		SearchIndex.buildIndex(this.app.vault.getMarkdownFiles())
 	}
 }
