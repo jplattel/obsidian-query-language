@@ -24,6 +24,8 @@ This little block in a note renders to an template, counting the notes in the `1
 
 ### More examples:
 
+*Please note that the query syntax is different in Fuse* (that this plugin uses) than the current query model or search in Obsidian. Until Obsidian opens up the API for the search it's this way for now. You can use the `debug: true` in the code-block to see the results return by the query.
+
 Render to a title and don't show the `OQL` badge
 
 ````markdown
@@ -57,8 +59,6 @@ template: "list" # Renders to a list with notes linked
 limit: 10
 ```
 ````
-
-Please note that the query syntax is different in Fuse (that this plugin uses) than the current query model or search in Obsidian. Until Obsidian opens up the API for the search it's this way for now. You cna use the `debug: true` in the code-block to see the results return by the query.
 
 Check out the [extended search docs from Fuse](https://fusejs.io/examples.html#extended-search) to figure out how to query your own vault.
 
