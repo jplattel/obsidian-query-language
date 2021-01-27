@@ -24,6 +24,7 @@ class FuseSearchIndex{
 
         // Remap the fields of each markdown file
         let markdownFiles = files.map((markdownFile) => {
+            console.log()
             return <IMarkdownFile> {
                 title: markdownFile.basename,
                 path: markdownFile.path,
@@ -33,12 +34,14 @@ class FuseSearchIndex{
             }
         })
 
+        const index = Fuse.createIndex(['title', 'path', 'content', 'created', 'modified'], markdownFiles)
+
         // Store the search index within this singleton
 		this.searchIndex = new Fuse(markdownFiles, {
 			keys: ['title', 'path', 'content', 'created', 'modified'],
             useExtendedSearch: true,
             includeScore: true,
-        });
+        }, index);
     }
     
     // Search method, accepts only strings, but support 

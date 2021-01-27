@@ -12,6 +12,7 @@ export interface OQLConfig {
 	limit?: number;
 	wrapper?: string;
 	debug?: boolean;
+	sort?: string;
 }
 
 export default class QueryResultRenderer {
@@ -24,12 +25,23 @@ export default class QueryResultRenderer {
 		let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
 
 		// Result & debug placeholder
-		let result; 
+		let searchResults: IMarkdownFile[] = [];
+		let result;
 		let debug;
 
 		try {
 			// Get the search index instance and search with query provided
-			const searchResults = await SearchIndex.search(oqlConfig.query)
+			searchResults = await SearchIndex.search(oqlConfig.query)
+
+			// If sorting is configured, apply it
+			if (oqlConfig.sort) {
+				// Inverse
+				if (oqlConfig.sort.charAt(0) === '-') {
+					searchResults.sort((a, b) => (a[oqlConfig.sort.slice(1)] > b[oqlConfig.sort.slice(1)]) ? 1 : -1)
+				} else {
+					searchResults.sort((a, b) => (a[oqlConfig.sort] < b[oqlConfig.sort]) ? 1 : -1)
+				}
+			}
 			
 			// Render the template with the type:
 			if (!oqlConfig.template) {
