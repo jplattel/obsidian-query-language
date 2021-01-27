@@ -26,26 +26,25 @@ This little block in a note renders to an template, counting the notes in the `1
 
 *Please note that the query syntax is different in Fuse* (that this plugin uses) than the current query model or search in Obsidian. Until Obsidian opens up the API for the search it's this way for now. You can use the `debug: true` in the code-block to see the results return by the query.
 
-Render to a title and don't show the `OQL` badge
+Render a query to a string:
 
 ````markdown
 ```oql
-name: 
+name: "Daily notes"
 query: "'100 Daily/'"
 template: "{name}: {count}"
-wrapper: h1
-badge: false
 ```
 ````
 
-Show debug window that lists the results:
+Show debug window that lists the results, and wrap the results in a heading:
 
 ````markdown
 ```oql
-name: 
+name: "Daily notes"
 query: "'100 Daily/'"
 template: "{name}: {count}"
 debug: true
+wrapper: h1
 ```
 ````
 
@@ -60,7 +59,7 @@ limit: 10
 ```
 ````
 
-Show the oldest 5 projects with their modified at date in table:
+Show the oldest 5 projects (sort -created) with their modified at date in table:
 
 ````markdown
 ```oql
@@ -81,12 +80,11 @@ Count the amount notes that contain a certain tag:
 name: 'How many notes use #utrecht'
 query: "'#utrecht"
 template: "{name}: {count}"
-sort: '-created'
 badge: false
 ```
 ````
 
-Check out the [extended search docs from Fuse](https://fusejs.io/examples.html#extended-search) to figure out how to query your own vault.
+Check out the [extended search docs from Fuse](https://fusejs.io/examples.html#extended-search) to figure out how to query your own vault. **The syntax doesn't match the current query syntax of Obsidian search. Please be aware!**
 
 ## How does this plugin work?
 
@@ -94,8 +92,8 @@ It builds a parallel index using [Fuse](https://fusejs.io/) that you can query f
 
 ## Todo / Features
 
-- [ ] Sorting the ouput?
+- [x] Sorting the ouput?
 - [ ] Other output options like a table or something? Or even a graph?
 - [ ] Created/Modified timestamps are available, can we query those as well?
 - [ ] Configure Fuse settings in a settings tab of the plugin?
-- [ ] Convert to seach API of obsidian once it's available.
+- [ ] Convert to search API of obsidian once it's available.
