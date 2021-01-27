@@ -18,14 +18,11 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 			callback: () => this.rebuildIndex()
 		})
 	
-		// Rebuild the index when layout is ready or on modifying of a file:
-		if (this.app.workspace.layoutReady) {
-			this.rebuildIndex()
-		} else {
-			this.registerEvent(
-				this.app.vault.on("modify", this.rebuildIndex.bind(this))
-			);
-		}
+		// Rebuild the index on modifying of a file:
+		this.registerEvent(
+			this.app.vault.on("modify", this.rebuildIndex.bind(this))
+		);
+		
 	}
 
 	// Remove the postprocessor for OQL
@@ -35,7 +32,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 	// Rebuild the search index from the plugin since that 
 	// has access to the markdown files
-	rebuildIndex(){
+	async rebuildIndex() {
 		console.debug('[OQL] Rebuilding search index..');
 		SearchIndex.buildIndex(this.app.vault.getMarkdownFiles())
 	}

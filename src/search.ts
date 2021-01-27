@@ -2,6 +2,7 @@ import Fuse from 'fuse.js';
 import { TFile } from 'obsidian';
 
 export interface IMarkdownFile {
+    [index:string]: any; 
     title: string;
     path: string;
     content: string;
@@ -45,9 +46,10 @@ class FuseSearchIndex{
     // docs: https://fusejs.io/api/query.html
     
     // TODO, throw an error if the index is empty!
-    public search(query: string): IMarkdownFile[] {
+    public async search(query: string): Promise<IMarkdownFile[]> {
         console.debug(`[OQL] Searching for: ${query}`)
-        return this.searchIndex.search(query).map(searchResult => {
+        // We map the results to only return the items
+        return await this.searchIndex.search(query).map(searchResult => {
             return searchResult.item
         })
     }

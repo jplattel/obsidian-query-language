@@ -8,43 +8,53 @@ export interface OQLConfig {
 	readonly query: string;
 	badge: boolean
 	template: string;
+	fields?: string[];
 	limit?: number;
 	wrapper?: string;
 	debug?: boolean;
 }
 
 export default class QueryResultRenderer {
-	static postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+	static async postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 		// Check if the element matches an oql code block
 		const node = el.querySelector('pre[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
-		
+
 		// Try parsing the block yaml inside for all the required settings
 		let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
 
-		// Get the search index instance and Search with query provided
-		let searchResults: IMarkdownFile[] = SearchIndex.search(oqlConfig.query)
+		// Result & debug placeholder
+		let result; 
+		let debug
 
-		let result = document.createElement('span');
-	
-		if (!oqlConfig.template) {
-			let result = QueryResultRenderer.renderError("No template defined in the OQL block");
-		} else if (oqlConfig.template === 'list') {
-			let result = QueryResultRenderer.renderList(searchResults, oqlConfig)
-		} else if (oqlConfig.template === 'table') {
-			let result = QueryResultRenderer.renderTable(searchResults, oqlConfig)
-		} else if (typeof oqlConfig.template === 'string') {
-			let result = QueryResultRenderer.renderString(searchResults, oqlConfig)
-		}
+		try {
 
-		let debug: Element | void = DebugRenderer.render(searchResults, oqlConfig)
+			// Get the search index instance and search with query provided
+			let searchResults = await SearchIndex.search(oqlConfig.query)
+			
+			// Render the template with the type:
+			if (!oqlConfig.template) {
+				result = QueryResultRenderer.renderError("No template defined in the OQL block");
+			} else if (oqlConfig.template === 'list') {
+				result = QueryResultRenderer.renderList(searchResults, oqlConfig)
+			} else if (oqlConfig.template === 'table') {
+				result = QueryResultRenderer.renderTable(searchResults, oqlConfig)
+			} else if (typeof oqlConfig.template === 'string') {
+				result = QueryResultRenderer.renderString(searchResults, oqlConfig)
+			}
+
+			let debug: Element | void = DebugRenderer.render(searchResults, oqlConfig)
+
+		} catch (error) {
+			result = QueryResultRenderer.renderError(error.message);
+		}	
 		
 		// Replace the node with the result node
 		if (result) {
 			 // This renders the OQL badge? Maybe make it optional?
 			if (!oqlConfig.badge === false) result.addClass('oql-badge')
 
-			// Render debug
+			// Render debug if that is enabled in the yaml
 			if (debug) result.prepend(debug);
 			
 			// Finally replace the result
@@ -59,16 +69,34 @@ export default class QueryResultRenderer {
 		return errorElement
 	}
 
-	public static renderLink(markdownFileResult: IMarkdownFile) {
+	public static renderLink(searchResult: IMarkdownFile) {
 		let listItemLink = document.createElement('a');
 
-		// <a data-href="2021-01-09" href="2021-01-09" class="internal-link" target="_blank" rel="noopener">&lt; Yesterday</a>
+		// Example link <a data-href="2021-01-09" href="2021-01-09" class="internal-link" target="_blank" rel="noopener">&lt; Yesterday</a>
 		listItemLink.addClass('internal-link');
-		listItemLink.setAttribute('a', markdownFileResult.title);
-		listItemLink.setAttribute('data-href', markdownFileResult.title);
-		listItemLink.innerText = markdownFileResult.title;
+		listItemLink.setAttribute('a', searchResult.title);
+		listItemLink.setAttribute('data-href', searchResult.title);
+		listItemLink.innerText = searchResult.title;
 		
 		return listItemLink
+	}
+
+	public static renderRow(searchResult: IMarkdownFile, fields: string[]) {
+		let tableRow = document.createElement('tr');
+
+		fields.forEach(field => {
+			let tableData = document.createElement('td');
+			if (field === 'title') {
+				tableData.appendChild(QueryResultRenderer.renderLink(searchResult))
+			} else if (field === 'created' || field === 'modified') {
+				tableData.innerText = new Date(searchResult[field]).toISOString()
+			}else {
+				tableData.innerText = searchResult[field]
+			}
+			tableRow.appendChild(tableData)
+		});
+		
+		return tableRow
 	}
 
 	public static renderString(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
@@ -102,19 +130,41 @@ export default class QueryResultRenderer {
 			searchResults = searchResults.slice(0,oqlConfig.limit)
 		}
 
-		searchResults.forEach(markdownFileResult => {
+		searchResults.forEach(searchResult => {
 			let listItem = document.createElement('li');
-			listItem.appendChild(QueryResultRenderer.renderLink(markdownFileResult));
+			listItem.appendChild(QueryResultRenderer.renderLink(searchResult));
 			result.appendChild(listItem);
-		});		
+		});
 		return result
 	}
 
 	public static renderTable(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
-		
 		let result = document.createElement('table');
+		
+		if (oqlConfig.limit) {
+			searchResults = searchResults.slice(0,oqlConfig.limit)
+		}
 
+		// if fields are provided in the config, use those, otherwise default to date & date created
+		const fields = oqlConfig.fields || ['title', 'created']
+
+		// Create a header in the table
+		let tableHeader = document.createElement('tr');
+		fields.forEach(field => {
+			let tableData = document.createElement('th')
+			// Capitalize the field
+			tableData.innerText = field.charAt(0).toUpperCase() + field.slice(1);
+			tableHeader.appendChild(tableData);
+		});
+
+		result.appendChild(tableHeader)
+
+		// Finally, render the table contents
+		searchResults.forEach(searchResult => {
+			result.appendChild(QueryResultRenderer.renderRow(searchResult, fields));
+		});
+		
 		return result
 	}
 }
