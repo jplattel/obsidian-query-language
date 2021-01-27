@@ -17,7 +17,7 @@ export interface OQLConfig {
 export default class QueryResultRenderer {
 	static async postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 		// Check if the element matches an oql code block
-		const node = el.querySelector('pre[class*="language-oql"]')
+		const node = el.querySelector('code[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
 
 		// Try parsing the block yaml inside for all the required settings
@@ -25,12 +25,11 @@ export default class QueryResultRenderer {
 
 		// Result & debug placeholder
 		let result; 
-		let debug
+		let debug;
 
 		try {
-
 			// Get the search index instance and search with query provided
-			let searchResults = await SearchIndex.search(oqlConfig.query)
+			const searchResults = await SearchIndex.search(oqlConfig.query)
 			
 			// Render the template with the type:
 			if (!oqlConfig.template) {
@@ -41,24 +40,25 @@ export default class QueryResultRenderer {
 				result = QueryResultRenderer.renderTable(searchResults, oqlConfig)
 			} else if (typeof oqlConfig.template === 'string') {
 				result = QueryResultRenderer.renderString(searchResults, oqlConfig)
-			}
-
-			let debug: Element | void = DebugRenderer.render(searchResults, oqlConfig)
+			}			
 
 		} catch (error) {
-			result = QueryResultRenderer.renderError(error.message);
+			result = QueryResultRenderer.renderError(error);
 		}	
 		
 		// Replace the node with the result node
 		if (result) {
-			 // This renders the OQL badge? Maybe make it optional?
+			
+			// This renders the OQL badge? Maybe make it optional?
 			if (!oqlConfig.badge === false) result.addClass('oql-badge')
 
-			// Render debug if that is enabled in the yaml
-			if (debug) result.prepend(debug);
-			
 			// Finally replace the result
-			el.replaceChild(result, node)
+			el.replaceChild(result, node.parentElement)
+			
+			// Render the debug part if enabled in the config
+			if (oqlConfig.debug) {
+				el.appendChild(DebugRenderer.render(searchResults, oqlConfig))
+			} 
 		}
 	}
 

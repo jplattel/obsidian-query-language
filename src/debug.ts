@@ -11,7 +11,6 @@ export default class DebugRenderer {
             let debugQuery = `// Query: ${nodeConfig.query}\n// Results: \n\n`
             let noteTitles = searchResults.map((r) => `- ${r.title}`).join("\n")
             debugWindow.innerText = debugText + debugQuery + noteTitles
-            console.log(searchResults);
             return debugWindow
         }
     }

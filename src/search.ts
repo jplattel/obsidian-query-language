@@ -55,4 +55,4 @@ class FuseSearchIndex{
     }
 }
 
-export const SearchIndex = new FuseSearchIndex() 
+export const SearchIndex = new FuseSearchIndex()

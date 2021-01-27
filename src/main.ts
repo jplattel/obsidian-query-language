@@ -3,14 +3,10 @@ import { SearchIndex } from './search';
 import QueryResultRenderer from './renderer';
 import * as Yaml from 'yaml';
 export default class ObsidianQueryLanguagePlugin extends Plugin {
-
 	async onload() {
 		// Starting
 		console.debug("[OQL] Starting OQL");
-
-		// Register the result renderer as a postprocessor
-		MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
-
+		
 		// Register a command that lets you update the search index manually
 		this.addCommand({
 			id: 'oql-rebuild-search-index',
@@ -22,7 +18,14 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		this.registerEvent(
 			this.app.vault.on("modify", this.rebuildIndex.bind(this))
 		);
-		
+
+		// Rebuild the index on layout-ready, for the initial render
+		this.app.workspace.on("layout-ready", () => {
+			this.rebuildIndex.bind(this)()
+		})
+
+		// Register the renderer as postprocessor
+		MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
 	}
 
 	// Remove the postprocessor for OQL
@@ -32,7 +35,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 	// Rebuild the search index from the plugin since that 
 	// has access to the markdown files
-	async rebuildIndex() {
+	rebuildIndex() {
 		console.debug('[OQL] Rebuilding search index..');
 		SearchIndex.buildIndex(this.app.vault.getMarkdownFiles())
 	}
