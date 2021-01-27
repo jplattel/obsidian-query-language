@@ -42,9 +42,9 @@ Show debug window that lists the results:
 
 ````markdown
 ```oql
-name: "Notes with #tag.
-query: "'#tag"
-template: "{count}: {name}"
+name: 
+query: "'100 Daily/'"
+template: "{name}: {count}"
 debug: true
 ```
 ````
@@ -57,6 +57,32 @@ name: Persons
 query: "'folder1/'"
 template: "list" # Renders to a list with notes linked
 limit: 10
+```
+````
+
+Show the oldest 5 projects with their modified at date in table:
+
+````markdown
+```oql
+name: Oldest projects
+query: "'200 Projects/"
+template: "table"
+sort: '-created'
+limit: 5
+badge: false
+fields: ['title', 'modified']
+```
+````
+
+Count the amount notes that contain a certain tag:
+
+````
+```oql
+name: 'How many notes use #utrecht'
+query: "'#utrecht"
+template: "{name}: {count}"
+sort: '-created'
+badge: false
 ```
 ````
 
