@@ -3,7 +3,6 @@
 This is a plugin for Obsidian (https://obsidian.md) that allows you to query your notes and gather information about your vault inside a note itself. You write queries and configure them with a code-block and the renderer will output the results in the markdown preview:
 
 ![](https://raw.githubusercontent.com/jplattel/obsidian-query-language/main/images/example-oql-screenshot.png)
-
 ## Installation
 
 Clone this repository in the `.obsidian/plugins` folder and enable it in the settings of Obsidian. 
@@ -20,7 +19,7 @@ template: "{name}: {count}"
 ```
 ````
 
-This little block in a note renders to an template, counting the notes in the `100 Daily` folder and returns a output that renders as: `Daily notes: 100` in the case you have 100 daily notes. This is just a basic way of querying your vault. This is the full config will al fields that is available:
+This little block in a note renders to an template, counting the notes in the `100 Daily` folder and returns a output that renders as: `Daily notes: 100` in the case you have 100 daily notes. This is just a basic way of querying your vault. This is the full config will al fields that is available, please note that certain fields only work with specific templates (like limit with list/table view).
 
 ````markdown
 ```oql
@@ -107,8 +106,10 @@ It builds a parallel index using [Fuse](https://fusejs.io/) that you can query f
 ## Todo / Features
 
 - [x] Sorting the ouput?
+- [ ] Allow queries on frontmatter specific fields?
+- [ ] Allow more complex [logical query operators](https://fusejs.io/api/query.html).
 - [ ] Other output options like a table or something? Or even a graph?
 - [ ] Created/Modified timestamps are available, can we query those as well?
 - [ ] Multiple queries? (Idea by [Liam](https://github.com/liamcain/))
-- [ ] Configure Fuse settings in a settings tab of the plugin?
+- [ ] Configure Fuse settings in a settings tab of the plugin? (sensitivity for fuzzy matching for example)
 - [ ] Convert to search API of obsidian once it's available.
