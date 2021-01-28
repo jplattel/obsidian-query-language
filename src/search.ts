@@ -24,7 +24,6 @@ class FuseSearchIndex{
 
         // Remap the fields of each markdown file
         let markdownFiles = files.map((markdownFile) => {
-            console.log()
             return <IMarkdownFile> {
                 title: markdownFile.basename,
                 path: markdownFile.path,

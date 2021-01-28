@@ -21,7 +21,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 		// Rebuild the index on layout-ready, for the initial render
 		this.app.workspace.on("layout-ready", () => {
-			this.rebuildIndex.bind(this)()
+			this.rebuildIndex()
 		})
 
 		// Register the renderer as postprocessor

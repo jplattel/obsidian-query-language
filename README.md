@@ -20,7 +20,21 @@ template: "{name}: {count}"
 ```
 ````
 
-This little block in a note renders to an template, counting the notes in the `100 Daily` folder and returns a output that renders as: `Daily notes: 100` in the case you have 100 daily notes. This is just a basic way of querying your vault. More in depth examples soon!
+This little block in a note renders to an template, counting the notes in the `100 Daily` folder and returns a output that renders as: `Daily notes: 100` in the case you have 100 daily notes. This is just a basic way of querying your vault. This is the full config will al fields that is available:
+
+````markdown
+```oql
+name: Daily notes               # The name of query (can be used in the template as {name})
+query: "'100 Daily/'"           # The actual query to use with Fuse.js
+template: "{name}: {count}"     # or use "table" or "list" for a different output
+badge: true                     # Show the OQL badge on the right 
+debug: true                     # Show the debug window
+wrapper: "div"                  # Wrapper (in the case you want to render a title like `h1`)
+limit: 10                       # When using list or table view, limit the result to N.
+sort: "title"                   # or "-title" for descending sort, you can also sort on 'modified' or 'created'
+fields: ['title', 'created']    # Fields to show in table view
+```
+````
 
 ### More examples:
 
@@ -95,5 +109,6 @@ It builds a parallel index using [Fuse](https://fusejs.io/) that you can query f
 - [x] Sorting the ouput?
 - [ ] Other output options like a table or something? Or even a graph?
 - [ ] Created/Modified timestamps are available, can we query those as well?
+- [ ] Multiple queries? (Idea by [Liam](https://github.com/liamcain/))
 - [ ] Configure Fuse settings in a settings tab of the plugin?
 - [ ] Convert to search API of obsidian once it's available.

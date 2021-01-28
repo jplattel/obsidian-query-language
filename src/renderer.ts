@@ -1,8 +1,9 @@
 import { MarkdownPostProcessor, MarkdownPostProcessorContext, MarkdownPreviewRenderer, MarkdownRenderer, Notice} from 'obsidian';
 import * as Yaml from 'yaml';
+import * as _ from "lodash";
 import { SearchIndex, IMarkdownFile } from 'search';
 import Fuse from 'fuse.js';
-import DebugRenderer from 'debug';
+import DebugRenderer from 'utils';
 export interface OQLConfig {
 	readonly name: string;
 	readonly query: string;
@@ -33,14 +34,9 @@ export default class QueryResultRenderer {
 			// Get the search index instance and search with query provided
 			searchResults = await SearchIndex.search(oqlConfig.query)
 
-			// If sorting is configured, apply it
+			// If sorting is configured, apply it on the search results
 			if (oqlConfig.sort) {
-				// Inverse
-				if (oqlConfig.sort.charAt(0) === '-') {
-					searchResults.sort((a, b) => (a[oqlConfig.sort.slice(1)] > b[oqlConfig.sort.slice(1)]) ? 1 : -1)
-				} else {
-					searchResults.sort((a, b) => (a[oqlConfig.sort] < b[oqlConfig.sort]) ? 1 : -1)
-				}
+				searchResults = QueryResultRenderer.sortSearchResults(searchResults, oqlConfig)
 			}
 			
 			// Render the template with the type:
@@ -54,24 +50,28 @@ export default class QueryResultRenderer {
 				result = QueryResultRenderer.renderString(searchResults, oqlConfig)
 			}			
 
+		// If any error shows up when rendering, catch it and render an error instead.
 		} catch (error) {
 			result = QueryResultRenderer.renderError(error);
 		}	
 		
-		// Replace the node with the result node
-		if (result) {
-			
-			// This renders the OQL badge? Maybe make it optional?
-			if (!oqlConfig.badge === false) result.addClass('oql-badge')
+		if (result) { // If we have a result
+			if (oqlConfig.badge) result.addClass('oql-badge') // Render the badge (or not)
+			el.replaceChild(result, node.parentElement) // Finally replace node with the result
 
-			// Finally replace the result
-			el.replaceChild(result, node.parentElement)
-			
-			// Render the debug part if enabled in the config
-			if (oqlConfig.debug) {
-				el.appendChild(DebugRenderer.render(searchResults, oqlConfig))
-			} 
+			// And render the debug if toggled
+			if (oqlConfig.debug) el.appendChild(DebugRenderer.render(searchResults, oqlConfig))
 		}
+	}
+
+	private static sortSearchResults(searchResults: IMarkdownFile[], oqlConfig: OQLConfig) {
+		let sortedSearchResults = []
+		if (oqlConfig.sort.charAt(0) === '-') {
+			sortedSearchResults = _.orderBy(searchResults, [oqlConfig.sort.slice(1)], ['asc']);
+		} else {
+			sortedSearchResults = _.orderBy(searchResults, [oqlConfig.sort], ['desc']);
+		}
+		return sortedSearchResults
 	}
 
 	public static renderError(errorMessage: string): Element {
@@ -81,7 +81,7 @@ export default class QueryResultRenderer {
 		return errorElement
 	}
 
-	public static renderLink(searchResult: IMarkdownFile) {
+	private static renderLink(searchResult: IMarkdownFile) {
 		let listItemLink = document.createElement('a');
 
 		// Example link <a data-href="2021-01-09" href="2021-01-09" class="internal-link" target="_blank" rel="noopener">&lt; Yesterday</a>
@@ -89,11 +89,10 @@ export default class QueryResultRenderer {
 		listItemLink.setAttribute('a', searchResult.title);
 		listItemLink.setAttribute('data-href', searchResult.title);
 		listItemLink.innerText = searchResult.title;
-		
 		return listItemLink
 	}
 
-	public static renderRow(searchResult: IMarkdownFile, fields: string[]) {
+	private static renderRow(searchResult: IMarkdownFile, fields: string[]) {
 		let tableRow = document.createElement('tr');
 
 		fields.forEach(field => {
@@ -111,7 +110,7 @@ export default class QueryResultRenderer {
 		return tableRow
 	}
 
-	public static renderString(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderString(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
 
 		let output = oqlConfig.template;
@@ -132,7 +131,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderList(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderList(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering list, with ${searchResults.length} results`);
 		let output = oqlConfig.template;
 		
@@ -150,7 +149,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	public static renderTable(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderTable(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
 		let result = document.createElement('table');
 		
