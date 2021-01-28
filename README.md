@@ -2,7 +2,7 @@
 
 This is a plugin for Obsidian (https://obsidian.md) that allows you to query your notes and gather information about your vault inside a note itself. You write queries and configure them with a code-block and the renderer will output the results in the markdown preview:
 
-![](images/example-oql-screenshot.png)
+![](https://raw.githubusercontent.com/jplattel/obsidian-query-language/main/images/example-oql-screenshot.png)
 
 ## Installation
 
