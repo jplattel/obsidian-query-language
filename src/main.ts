@@ -1,4 +1,4 @@
-import { MarkdownPreviewRenderer, App, Notice, Plugin, Vault, MetadataCache, TFile } from 'obsidian';
+import { MarkdownPreviewRenderer, MarkdownPreviewView, App, Notice, Plugin, Vault, MetadataCache, TFile, TAbstractFile } from 'obsidian';
 import { SearchIndex, IFuseFile } from './search';
 import QueryResultRenderer from './renderer';
 import * as Yaml from 'yaml';
@@ -14,7 +14,9 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		this.addCommand({
 			id: 'oql-rebuild-search-index',
 			name: 'Rebuild the OQL search index',
-			callback: () => this.buildIndex()
+			callback: () => {
+				this.buildIndex()
+			}
 		})
 	
 		// Rebuild the index on modifying a file:
@@ -52,15 +54,19 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 	}
 
 	// WIP, rebuilding the entire index is costly, refreshing the single edited file is more useful
-	refreshFile(file: TFile): void {
-		// Remove the old document from the index (matching on path, is this the correct way? What if it changes?)
-		SearchIndex.removeFile(this.parseFile(file))
-		// Add the file to the index
-		SearchIndex.addFile(this.parseFile(file))
+	refreshFile(file: TAbstractFile): void {
+		console.log(file);
+		
+		if (file instanceof TFile) {
+			// Remove the old document from the index (matching on path, is this the correct way? What if it changes?)
+			SearchIndex.removeFile(this.parseFile(file))
+			// Add the file to the index
+			SearchIndex.addFile(this.parseFile(file))
+		}
 	}
 
 	// Go from a TFile object to a TFuseFile, adding more metadata to query
-	parseFile(file): IFuseFile {
+	parseFile(file: TFile): IFuseFile {
 		// Parse the metadata of the file
 		let metadata = this.app.metadataCache.getFileCache(file)
 		
@@ -81,7 +87,6 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 				tags = tags.concat(metadata.tags.map(tag => tag.tag))
 			}
 		}
-		
 		
 		// Return a better formatted file for indexing
 		return <IFuseFile> {

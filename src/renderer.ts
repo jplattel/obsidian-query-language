@@ -137,6 +137,41 @@ export default class QueryResultRenderer {
 		return tableRow
 	}
 
+	private static renderListItem(searchResult: IFuseFile, fields: string[]) {
+		let listItem = document.createElement('li');
+
+		fields.forEach(field => {
+			let listItemField = document.createElement('span');
+			
+			if (field === 'title') {
+				listItemField.appendChild(QueryResultRenderer.renderLink(searchResult))
+			} else if (field === 'created' || field === 'modified') {
+				listItemField.innerText = new Date(searchResult[field]).toISOString()
+			} else if (field === 'tags') {
+				try {
+					searchResult[field].map(tag => {
+						listItemField.appendChild(this.renderTag(tag))
+						let spacing = document.createElement('span')
+						spacing.innerText = ' '
+						listItemField.appendChild(spacing);
+					});
+				} catch (e) {
+					console.log(searchResult)
+				}
+			} else {
+				listItem.innerText = searchResult[field]
+			}
+
+			// Render a space between each field
+			let spacing = document.createElement('span')
+			spacing.innerText = ' '
+			listItemField.appendChild(spacing);
+
+			listItem.appendChild(listItemField)
+		});
+		return listItem
+	}
+
 	private static renderString(searchResults: IFuseFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
 
@@ -168,10 +203,11 @@ export default class QueryResultRenderer {
 			searchResults = searchResults.slice(0,oqlConfig.limit)
 		}
 
+		// if fields are provided in the config, use those, otherwise default to title
+		const fields = oqlConfig.fields || ['title']
+
 		searchResults.forEach(searchResult => {
-			let listItem = document.createElement('li');
-			listItem.appendChild(QueryResultRenderer.renderLink(searchResult));
-			result.appendChild(listItem);
+			result.appendChild(QueryResultRenderer.renderListItem(searchResult, fields));
 		});
 		return result
 	}

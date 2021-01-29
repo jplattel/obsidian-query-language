@@ -24,7 +24,6 @@ class FuseSearchIndex{
     public buildIndex(files: IFuseFile[]){
         // Log the amount of files in debug
         console.debug(`[OQL] Indexing ${files.length} files..`)
-        
         const index = Fuse.createIndex(['title', 'path', 'content', 'created', 'modified', 'tags'], files)
 
         // Store the search index within this singleton
@@ -38,8 +37,8 @@ class FuseSearchIndex{
     // Search method, accepts only strings, but support 
     // different searching methods as described in the Fuse 
     // docs: https://fusejs.io/api/query.html
-    public async search(query: string): Promise<IFuseFile[]> {
-        console.debug(`[OQL] Searching for: ${query}`)
+    public async search(query: string | Object): Promise<IFuseFile[]> {
+        console.debug(`[OQL] Searching for: ${JSON.stringify(query)}`)
 
         // We map the results to only return the items
         return await this.searchIndex.search(query).map(searchResult => {

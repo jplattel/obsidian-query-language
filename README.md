@@ -3,6 +3,14 @@
 This is a plugin for Obsidian (https://obsidian.md) that allows you to query your notes and gather information about your vault inside a note itself. You write queries and configure them with a code-block and the renderer will output the results in the markdown preview:
 
 ![](https://raw.githubusercontent.com/jplattel/obsidian-query-language/main/images/example-oql-screenshot.png)
+
+## Changelog
+
+- **1.4.0**
+    Tags are now supported in the fields view. Fields also work in list view.
+
+- **1.3.0**
+    You can now sort on create/modified or any other fields in table/list view.
 ## Installation
 
 Clone this repository in the `.obsidian/plugins` folder and enable it in the settings of Obsidian. 
@@ -99,6 +107,10 @@ badge: false
 
 Check out the [extended search docs from Fuse](https://fusejs.io/examples.html#extended-search) to figure out how to query your own vault. **The syntax doesn't match the current query syntax of Obsidian search. Please be aware!**
 
+### Complex queries
+
+Fuse also supports more complex queries, so instead of putting in a string as a query, you can also create a query object, while this less syntax forgiving it can be way more specific.
+
 ## How does this plugin work?
 
 It builds a parallel index using [Fuse](https://fusejs.io/) that you can query for data! 
@@ -106,6 +118,7 @@ It builds a parallel index using [Fuse](https://fusejs.io/) that you can query f
 ## Todo / Features
 
 - [x] Sorting the ouput?
+- [ ] Add a tag field to the table output
 - [ ] Allow queries on frontmatter specific fields?
 - [ ] Allow more complex [logical query operators](https://fusejs.io/api/query.html).
 - [ ] Other output options like a table or something? Or even a graph?
