@@ -1,7 +1,7 @@
 {
   "id": "obsidian-query-language",
   "name": "Obsidian Query Language",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "This plugin allows you to query notes and represent data within Obsidian",
   "author": "Joost Plattel",
   "authorUrl": "https://jplattel.nl",
