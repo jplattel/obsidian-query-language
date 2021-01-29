@@ -41,9 +41,6 @@ class FuseSearchIndex{
     public async search(query: string): Promise<IFuseFile[]> {
         console.debug(`[OQL] Searching for: ${query}`)
 
-        console.log(query);
-        
-
         // We map the results to only return the items
         return await this.searchIndex.search(query).map(searchResult => {
             return searchResult.item
@@ -52,7 +49,7 @@ class FuseSearchIndex{
 
     public removeFile(file: IFuseFile) {   
         return this.searchIndex.remove(doc => {
-			return doc.path === file.path
+			return doc.created === file.created
         })
     }
 

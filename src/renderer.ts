@@ -118,13 +118,16 @@ export default class QueryResultRenderer {
 			} else if (field === 'created' || field === 'modified') {
 				tableData.innerText = new Date(searchResult[field]).toISOString()
 			} else if (field === 'tags') {
-				// TODO, render them as clickable links
-				searchResult[field].map(t => {
-					tableData.appendChild(this.renderTag('#' + t))
-					let spacing = document.createElement('span')
-					spacing.innerText = ' '
-					tableData.appendChild(spacing);
-				});
+				try {
+					searchResult[field].map(tag => {
+						tableData.appendChild(this.renderTag(tag))
+						let spacing = document.createElement('span')
+						spacing.innerText = ' '
+						tableData.appendChild(spacing);
+					});
+				} catch (e) {
+					console.log(searchResult)
+				}
 			} else {
 				tableData.innerText = searchResult[field]
 			}
