@@ -5,10 +5,11 @@ Followin the same as: https://forum.obsidian.md/t/using-github-actions-to-releas
 ## Steps
 
 1.  Increment version in `manifest.json`.
-2.  Set Obsidian version that is supported in `version.json`.
-3.  Push the `main` branch to Github.
-4.  Set git tag with version: `git tag <version number>`.
-5.  Push the new tag to Github with: `git push origin --tag`.
+2.  Add an entry to the changelog
+4.  Set Obsidian version that is supported in `version.json`.
+5.  Push the `main` branch to Github.
+6.  Set git tag with version: `git tag <version number>`.
+7.  Push the new tag to Github with: `git push origin --tag`.
 
 This should trigger the Github workflow to build a release with the specified latest tag.
 

@@ -109,7 +109,17 @@ Check out the [extended search docs from Fuse](https://fusejs.io/examples.html#e
 
 ### Complex queries
 
-Fuse also supports more complex queries, so instead of putting in a string as a query, you can also create a query object, while this less syntax forgiving it can be way more specific.
+Fuse also supports more complex queries, so instead of putting in a string as a query, you can also create a query object, while this less syntax forgiving it can be way more specific, this is an example:
+
+````
+```oql
+name: 'How many notes are in the notes folder:'
+query: 
+    path: "'notes"
+template: "{name}: {count}"
+```
+````
+
 
 ## How does this plugin work?
 
@@ -118,10 +128,9 @@ It builds a parallel index using [Fuse](https://fusejs.io/) that you can query f
 ## Todo / Features
 
 - [x] Sorting the ouput?
-- [ ] Add a tag field to the table output
+- [x] Add a tag field to the table output
+- [x] Allow more complex [logical query operators](https://fusejs.io/api/query.html).
 - [ ] Allow queries on frontmatter specific fields?
-- [ ] Allow more complex [logical query operators](https://fusejs.io/api/query.html).
-- [ ] Other output options like a table or something? Or even a graph?
 - [ ] Created/Modified timestamps are available, can we query those as well?
 - [ ] Multiple queries? (Idea by [Liam](https://github.com/liamcain/))
 - [ ] Configure Fuse settings in a settings tab of the plugin? (sensitivity for fuzzy matching for example)
