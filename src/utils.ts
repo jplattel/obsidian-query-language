@@ -1,9 +1,9 @@
-import { IMarkdownFile } from 'search';
+import { IFuseFile } from './search';
 import { OQLConfig } from 'renderer';
 
 
 export default class DebugRenderer {
-    public static render(searchResults: IMarkdownFile[], nodeConfig: OQLConfig) {
+    public static render(searchResults: IFuseFile[], nodeConfig: OQLConfig) {
         if (nodeConfig.debug === true) {
             let debugWindow = document.createElement('pre');
             debugWindow.addClass("oql-debug")

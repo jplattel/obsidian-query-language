@@ -24,6 +24,7 @@
     "fuse.js": "^6.4.3",
     "lodash": "^4.17.20",
     "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "svelte": "^3.32.0",
     "yaml": "^1.10.0"
   }
 }

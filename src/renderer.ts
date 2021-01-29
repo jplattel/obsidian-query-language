@@ -1,9 +1,12 @@
 import { MarkdownPostProcessor, MarkdownPostProcessorContext, MarkdownPreviewRenderer, MarkdownRenderer, Notice} from 'obsidian';
 import * as Yaml from 'yaml';
 import * as _ from "lodash";
-import { SearchIndex, IMarkdownFile } from 'search';
+import { SearchIndex } from 'search';
 import Fuse from 'fuse.js';
 import DebugRenderer from 'utils';
+import { IFuseFile } from './search';
+
+
 export interface OQLConfig {
 	readonly name: string;
 	readonly query: string;
@@ -16,6 +19,7 @@ export interface OQLConfig {
 	sort?: string;
 }
 
+
 export default class QueryResultRenderer {
 	static async postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
 		// Check if the element matches an oql code block
@@ -26,7 +30,7 @@ export default class QueryResultRenderer {
 		let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
 
 		// Result & debug placeholder
-		let searchResults: IMarkdownFile[] = [];
+		let searchResults: IFuseFile[] = [];
 		let result;
 		let debug;
 
@@ -64,7 +68,7 @@ export default class QueryResultRenderer {
 		}
 	}
 
-	private static sortSearchResults(searchResults: IMarkdownFile[], oqlConfig: OQLConfig) {
+	private static sortSearchResults(searchResults: IFuseFile[], oqlConfig: OQLConfig) {
 		let sortedSearchResults = []
 		if (oqlConfig.sort.charAt(0) === '-') {
 			sortedSearchResults = _.orderBy(searchResults, [oqlConfig.sort.slice(1)], ['asc']);
@@ -81,18 +85,30 @@ export default class QueryResultRenderer {
 		return errorElement
 	}
 
-	private static renderLink(searchResult: IMarkdownFile) {
-		let listItemLink = document.createElement('a');
-
+	private static renderLink(searchResult: IFuseFile) {
 		// Example link <a data-href="2021-01-09" href="2021-01-09" class="internal-link" target="_blank" rel="noopener">&lt; Yesterday</a>
+		let listItemLink = document.createElement('a');
 		listItemLink.addClass('internal-link');
 		listItemLink.setAttribute('a', searchResult.title);
+		listItemLink.setAttribute('target', '_blank');
+		listItemLink.setAttribute('rel', 'noopener');
 		listItemLink.setAttribute('data-href', searchResult.title);
 		listItemLink.innerText = searchResult.title;
 		return listItemLink
 	}
 
-	private static renderRow(searchResult: IMarkdownFile, fields: string[]) {
+	private static renderTag(tag: string) {
+		// Example link  <a href="#friesland" class="tag" target="_blank" rel="noopener">#friesland</a>
+		let tagItemLink = document.createElement('a');
+		tagItemLink.addClass('tag');
+		tagItemLink.setAttribute('href', tag);
+		tagItemLink.setAttribute('target', '_blank');
+		tagItemLink.setAttribute('rel', 'noopener');
+		tagItemLink.innerText = tag;
+		return tagItemLink
+	}
+
+	private static renderRow(searchResult: IFuseFile, fields: string[]) {
 		let tableRow = document.createElement('tr');
 
 		fields.forEach(field => {
@@ -101,7 +117,15 @@ export default class QueryResultRenderer {
 				tableData.appendChild(QueryResultRenderer.renderLink(searchResult))
 			} else if (field === 'created' || field === 'modified') {
 				tableData.innerText = new Date(searchResult[field]).toISOString()
-			}else {
+			} else if (field === 'tags') {
+				// TODO, render them as clickable links
+				searchResult[field].map(t => {
+					tableData.appendChild(this.renderTag('#' + t))
+					let spacing = document.createElement('span')
+					spacing.innerText = ' '
+					tableData.appendChild(spacing);
+				});
+			} else {
 				tableData.innerText = searchResult[field]
 			}
 			tableRow.appendChild(tableData)
@@ -110,7 +134,7 @@ export default class QueryResultRenderer {
 		return tableRow
 	}
 
-	private static renderString(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderString(searchResults: IFuseFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering string, with ${searchResults.length} results`);
 
 		let output = oqlConfig.template;
@@ -131,7 +155,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	private static renderList(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderList(searchResults: IFuseFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering list, with ${searchResults.length} results`);
 		let output = oqlConfig.template;
 		
@@ -149,7 +173,7 @@ export default class QueryResultRenderer {
 		return result
 	}
 
-	private static renderTable(searchResults: IMarkdownFile[], oqlConfig: OQLConfig): Element {
+	private static renderTable(searchResults: IFuseFile[], oqlConfig: OQLConfig): Element {
 		console.debug(`[OQL] Rendering table, with ${searchResults.length} results`);
 		let result = document.createElement('table');
 		
