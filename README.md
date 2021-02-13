@@ -6,6 +6,9 @@ This is a plugin for Obsidian (https://obsidian.md) that allows you to query you
 
 ## Changelog
 
+- **1.5.0**
+    You can now sort by random (shuffle). Minor improvement to indexing when modifying or renaming files
+
 - **1.4.0**
     Tags are now supported in the fields view. Fields also work in list view.
 
