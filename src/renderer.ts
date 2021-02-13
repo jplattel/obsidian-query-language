@@ -1,16 +1,16 @@
 import { MarkdownPostProcessor, MarkdownPostProcessorContext, MarkdownPreviewRenderer, MarkdownRenderer, Notice} from 'obsidian';
 import * as Yaml from 'yaml';
 import * as _ from "lodash";
-import { SearchIndex } from 'search';
-import Fuse from 'fuse.js';
+import { SearchIndex, IFuseFile } from 'search';
 import DebugRenderer from 'utils';
-import { IFuseFile } from './search';
+import Fuse from 'fuse.js';
 
 
 export interface OQLConfig {
 	readonly name: string;
 	readonly query: string;
-	badge: boolean
+	badge: boolean;
+	includeCurrentNote: boolean;
 	template: string;
 	fields?: string[];
 	limit?: number;
@@ -27,7 +27,11 @@ export default class QueryResultRenderer {
 		if (!node) return // If it's not an oql block, return 
 
 		// Try parsing the block yaml inside for all the required settings
-		let oqlConfig: OQLConfig = {badge: true, ...Yaml.parse(node.textContent)};
+		let oqlConfig: OQLConfig = {
+			includeCurrentNote: false,
+			badge: true, 
+			...Yaml.parse(node.textContent)
+		};
 
 		// Result & debug placeholder
 		let searchResults: IFuseFile[] = [];
@@ -37,6 +41,11 @@ export default class QueryResultRenderer {
 		try {
 			// Get the search index instance and search with query provided
 			searchResults = await SearchIndex.search(oqlConfig.query)
+			
+			// Filter out the currentNote based on path of the current note
+			if (!oqlConfig.includeCurrentNote) {
+				searchResults = searchResults.filter(note => note.path !== ctx.sourcePath)
+			}
 
 			// If sorting is configured, apply it on the search results
 			if (oqlConfig.sort) {
@@ -72,6 +81,8 @@ export default class QueryResultRenderer {
 		let sortedSearchResults = []
 		if (oqlConfig.sort.charAt(0) === '-') {
 			sortedSearchResults = _.orderBy(searchResults, [oqlConfig.sort.slice(1)], ['asc']);
+		} else if (oqlConfig.sort === 'random') {
+			sortedSearchResults = _.shuffle(searchResults)
 		} else {
 			sortedSearchResults = _.orderBy(searchResults, [oqlConfig.sort], ['desc']);
 		}
@@ -126,7 +137,7 @@ export default class QueryResultRenderer {
 						tableData.appendChild(spacing);
 					});
 				} catch (e) {
-					console.log(searchResult)
+					console.error("Error rendering in row: ", searchResult)
 				}
 			} else {
 				tableData.innerText = searchResult[field]
@@ -156,7 +167,7 @@ export default class QueryResultRenderer {
 						listItemField.appendChild(spacing);
 					});
 				} catch (e) {
-					console.log(searchResult)
+					console.error("Error rendering in list item: ", searchResult)
 				}
 			} else {
 				listItem.innerText = searchResult[field]

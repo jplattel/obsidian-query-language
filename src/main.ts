@@ -1,4 +1,4 @@
-import { MarkdownPreviewRenderer, MarkdownPreviewView, App, Notice, Plugin, Vault, MetadataCache, TFile, TAbstractFile } from 'obsidian';
+import { MarkdownPreviewRenderer, MarkdownPreviewView, App, Notice, Plugin, Vault, MetadataCache, TFile, TAbstractFile, parseFrontMatterTags } from 'obsidian';
 import { SearchIndex, IFuseFile } from './search';
 import QueryResultRenderer from './renderer';
 import * as Yaml from 'yaml';
@@ -18,25 +18,25 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 				this.buildIndex()
 			}
 		})
-	
-		// Rebuild the index on modifying a file:
-		this.registerEvent(
-			this.app.vault.on("modify", (file) => {
-				this.refreshFile(file)
-			})
-		);
-
-		// // Rebuild the index on renaming a file
-		this.registerEvent(
-			this.app.vault.on("rename", (file, oldPath) => {				
-				this.refreshFile(file)
-			})
-		);
 
 		// Rebuild the index on layout-ready, for the initial render
 		this.app.workspace.on("layout-ready", () => {
 			this.buildIndex()
 		})
+
+		// Refresh the single file in the index when modifying
+		this.registerEvent(
+			this.app.vault.on("modify", (file) => {
+				this.refreshFile(file)
+			})
+		);
+		
+		// Refresh the single file in the index when renaming
+		this.registerEvent(
+			this.app.vault.on("rename", (file, oldPath) => {
+				this.refreshFile(file)
+			})
+		);
 
 		// Register the renderer as postprocessor
 		MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
@@ -55,8 +55,6 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 	// WIP, rebuilding the entire index is costly, refreshing the single edited file is more useful
 	refreshFile(file: TAbstractFile): void {
-		console.log(file);
-		
 		if (file instanceof TFile) {
 			// Remove the old document from the index (matching on path, is this the correct way? What if it changes?)
 			SearchIndex.removeFile(this.parseFile(file))
@@ -65,7 +63,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		}
 	}
 
-	// Go from a TFile object to a TFuseFile, adding more metadata to query
+	// Go from a TFile object to a TFuseFile, adding more metadata
 	parseFile(file: TFile): IFuseFile {
 		// Parse the metadata of the file
 		let metadata = this.app.metadataCache.getFileCache(file)
@@ -74,12 +72,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		if (metadata) {
 			// Get the tags from the frontmatter
 			if (metadata?.frontmatter?.tags) {
-				// Somehow instanceof String doesn't seem to work?!
-				if (typeof metadata.frontmatter.tags === 'string') {
-					tags = tags.concat(metadata.frontmatter.tags.split(',').map(tag => '#' + tag.trim()))
-				} else if (metadata.frontmatter.tags instanceof Array) {
-					tags = tags.concat(metadata.frontmatter.tags.map(tag => '#' + tag.trim()))
-				}
+				tags = parseFrontMatterTags(metadata.frontmatter)
 			} 
 
 			// Also add the tags from the metadata object (these are present in document itself)

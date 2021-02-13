@@ -46,9 +46,10 @@ class FuseSearchIndex{
         })
     }
 
-    public removeFile(file: IFuseFile) {   
+    public removeFile(file: IFuseFile) {
+        // We can only remove files if the index is available
         return this.searchIndex.remove(doc => {
-			return doc.created === file.created
+            return doc.created === file.created
         })
     }
 
