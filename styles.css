@@ -28,3 +28,12 @@
     background-color: #f8d7da;
     border-color: #f5c6cb;
 }
+
+.oql-warning {
+    padding: 10px;
+    border-radius: 3px;
+    color: #945a13;
+    background-color: #e1dcb1;
+    border-color: #ffc814;
+    margin-bottom: 10px
+}
