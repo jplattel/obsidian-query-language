@@ -33,10 +33,7 @@ export default class QueryResultRenderer {
 		// Check if the element matches an oql code block
 		const node = el.querySelector('code[class*="language-oql"]')
 		if (!node) return // If it's not an oql block, return 
-
-		console.log(ctx);
 		
-
 		// Try parsing the block yaml inside for all the required settings
 		let oqlConfig: OQLConfig = {
 			includeCurrentNote: false,
