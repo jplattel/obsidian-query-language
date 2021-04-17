@@ -44,7 +44,7 @@ This little block in a note renders to an template, counting the notes in the `1
 ````markdown
 ```oql
 name: Daily notes               # The name of query (can be used in the format as {name})
-query: "'100 Daily/'"           # The actual query to use with Fuse.js
+query: "'100 Daily/"            # The actual query to use with Fuse.js (note the single ' for exact matching)
 template: "string"              # or use "table" or "list" for a different output
 format: "{name}: {count}"       # the format for the output 
 badge: true                     # Show the OQL badge on the right 
@@ -76,7 +76,7 @@ Render a query to a string:
 ````markdown
 ```oql
 name: "Daily notes"
-query: "'100 Daily/'"
+query: "'100 Daily/"
 template: "string"
 format: "{name}: {count}"
 ```
@@ -87,7 +87,7 @@ Show debug window that lists the results, and wrap the results in a heading:
 ````markdown
 ```oql
 name: "Daily notes"
-query: "'100 Daily/'"
+query: "'100 Daily/"
 template: "string"
 format: "{name}: {count}"
 debug: true
@@ -100,7 +100,7 @@ Render a list of 10 random notes in `folder1/`.
 ````markdown
 ```oql
 name: Folder 1
-query: "'folder1/'" 
+query: "'folder1/" 
 template: "list" # Renders to a list with notes linked
 sort: 'random' # Render the list in a random order
 limit: 10 # Limit it to the first 10
@@ -112,7 +112,7 @@ Render a list with a custom format of 10 last created notes in `folder1/`.
 ````markdown
 ```oql
 name: Folder 1
-query: "'folder1/'" 
+query: "'folder1/" 
 template: "list" # Renders to a list with notes linked
 format: "{created}: {title}"
 sort: 'created' 
@@ -154,7 +154,7 @@ Fuse also supports more complex queries, so instead of putting in a string as a 
 
 ````
 ```oql
-name: 'How many notes are in the notes folder:'
+name: 'How many notes are in the notes folder'
 query: 
     path: "'notes"
 template: "string"
