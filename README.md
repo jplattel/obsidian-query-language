@@ -162,6 +162,61 @@ format: "{name}: {count}
 ```
 ````
 
+### Search for content of notes
+
+The previous examples focused on meta-data searches. Of course, OQL may also be used to search the actual content of the notes in Obsidian. 
+
+The following examples should get you started: (Thanks to [https://github.com/ewandel](ewandel)
+
+````
+```oql
+name: 'boolean OR search'
+query: apple | pear
+template: "string"
+format: "{name}: {count}"
+badge: true
+debug: true
+complete notation (longer, but more flexible):
+```
+````
+
+````
+```oql
+name: 'OR combination list of results'
+query: { $or: [{ "content": "'apple" }, { "content": "'pear" }] }
+template: "list"
+badge: true
+debug: true
+Example 2:
+only search in note "my garden" and check if it contains "apple" AND "pear"
+```
+````
+
+````
+```oql
+name: 'Search in single file with AND'
+query: { $and: [{ "title": ="my garden" }, {$and: [{ "content": "'apple" }, {"content": "'pear" }]}]}
+template: "string"
+badge: false
+debug: true
+includeMatches: false
+format: "{count}"
+note the "=" in front of "my garden" to force an exact match, while the "'" only requires that the text contains the word, for example a link to [[apple]] or an "apple-tree" will also be found.
+```
+````
+
+````
+```oql
+name: 'check if note "my new garden" contains "fruit" AND ("tree" OR "bush")'
+query: { $and: [{ "title": ="my new garden" }, { "content": "'fruit"}, {$or: [{ "content": "'tree" }, {"content": "'bush" }]}]}
+template: "string"
+badge: false
+debug: true
+includeMatches: false
+format: "{count}"
+```
+````
+
 ## How does this plugin work?
 
 It builds a parallel index using [Fuse](https://fusejs.io/) that you can query for data! 
