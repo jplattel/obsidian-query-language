@@ -20,6 +20,7 @@ export default function renderString(searchResults: IFuseFile[], oqlConfig: OQLC
     if (searchResults) {
         output = output.replace("{count}", searchResults.length.toString())
     }
+
     // Create the wrapper element (or use a span by default) 
     // and put the result of the query inside
     let result = document.createElement(oqlConfig.wrapper || 'span')

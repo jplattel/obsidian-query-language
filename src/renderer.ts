@@ -6,10 +6,6 @@ import Fuse from 'fuse.js';
 
 // TODO import from renderers.ts file...
 import renderError from './renderers/error';
-import renderList from './renderers/list';
-import renderTable from './renderers/table';
-import renderString from './renderers/string';
-import renderLink from './renderers/link';
 import renderDebug from './renderers/debug';
 import renderWarning from './renderers/warning'; 
 import renderers from './renderers/renderers'
@@ -30,8 +26,6 @@ export interface OQLConfig {
 
 export default class QueryResultRenderer {
 	static async postprocessor(source: any, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
-
-		// console.log(source, el, ctx)
 
 		// Try parsing the block yaml inside for all the required settings
 		let oqlConfig: OQLConfig = {
@@ -65,7 +59,7 @@ export default class QueryResultRenderer {
 				
 				// If sorting is configured, apply it on the search results
 				if (oqlConfig.sort) {
-					searchResults = QueryResultRenderer.sortSearchResults(searchResults, oqlConfig)
+					searchResults = this.sortSearchResults(searchResults, oqlConfig)
 				}
 
 				// Render the output
@@ -83,7 +77,7 @@ export default class QueryResultRenderer {
 			el.appendChild(result) // Finally replace node with the result
 
 			// And render the debug if toggled
-			if (oqlConfig.debug) el.appendChild(DebugRenderer.render(searchResults, oqlConfig))
+			if (oqlConfig.debug) el.appendChild(renderDebug(searchResults, oqlConfig))
 			return el
 		}
 	}
