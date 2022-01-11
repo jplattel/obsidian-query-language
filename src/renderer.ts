@@ -21,16 +21,15 @@ export interface OQLConfig {
 
 
 export default class QueryResultRenderer {
-	static async postprocessor(el: HTMLElement, ctx: MarkdownPostProcessorContext) {
-		// Check if the element matches an oql code block
-		const node = el.querySelector('code[class*="language-oql"]')
-		if (!node) return // If it's not an oql block, return 
+	static async postprocessor(source: any, el: HTMLElement, ctx: MarkdownPostProcessorContext) {
+
+		// console.log(source, el, ctx)
 
 		// Try parsing the block yaml inside for all the required settings
 		let oqlConfig: OQLConfig = {
 			includeCurrentNote: false,
 			badge: true, 
-			...Yaml.parse(node.textContent)
+			...Yaml.parse(source)
 		};
 
 		// Result & debug placeholder
@@ -41,7 +40,7 @@ export default class QueryResultRenderer {
 		try {
 			// Get the search index instance and search with query provided
 			searchResults = await SearchIndex.search(oqlConfig.query)
-			
+
 			// Filter out the currentNote based on path of the current note
 			if (!oqlConfig.includeCurrentNote) {
 				searchResults = searchResults.filter(note => note.path !== ctx.sourcePath)
@@ -67,13 +66,15 @@ export default class QueryResultRenderer {
 		} catch (error) {
 			result = QueryResultRenderer.renderError(error);
 		}	
-		
+		console.log(result)
+
 		if (result) { // If we have a result
 			if (oqlConfig.badge) result.addClass('oql-badge') // Render the badge (or not)
-			el.replaceChild(result, node.parentElement) // Finally replace node with the result
+			el.appendChild(result) // Finally replace node with the result
 
 			// And render the debug if toggled
 			if (oqlConfig.debug) el.appendChild(DebugRenderer.render(searchResults, oqlConfig))
+			return el
 		}
 	}
 

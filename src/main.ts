@@ -38,13 +38,17 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 			})
 		);
 
+		this.registerMarkdownCodeBlockProcessor("oql", (source, el, ctx) => {
+			return QueryResultRenderer.postprocessor(source, el, ctx)
+		})
+
 		// Register the renderer as postprocessor
-		MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
+		// MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
 	}
 
 	// Remove the postprocessor for OQL
 	onunload() {
-		MarkdownPreviewRenderer.unregisterPostProcessor(QueryResultRenderer.postprocessor);
+		// MarkdownPreviewRenderer.unregisterPostProcessor(QueryResultRenderer.postprocessor);
 	}
 
 	// Rebuild the search index 
