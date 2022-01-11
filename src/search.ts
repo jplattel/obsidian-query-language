@@ -5,8 +5,8 @@ export interface IFuseFile {
     title: string;
     path: string;
     content: string;
-    created: number;
-    modified: number;
+    created: any;
+    modified: any;
     tags?: string[];
     frontmatter?: any;
 }
@@ -18,22 +18,25 @@ export interface IFuseFile {
 class FuseSearchIndex{    
     // This contains the actual Fuse search object
     private searchIndex: Fuse<IFuseFile>;
+    public state = 'starting';
 
     // Provide a set of markdown files to build a index
     // with for example this.app.vault.getMarkdownFiles()
     public buildIndex(files: IFuseFile[]){
         // Log the amount of files in debug
         console.debug(`[OQL] Indexing ${files.length} files..`)
-        const index = Fuse.createIndex(['title', 'path', 'content', 'created', 'modified', 'tags'], files)
+        const indexKeys = ['title', 'path', 'content', 'created', 'modified', 'tags']
+        const index = Fuse.createIndex(indexKeys, files)
 
         // Store the search index within this singleton
 		this.searchIndex = new Fuse(files, {
-			keys: ['title', 'path', 'content', 'created', 'modified', 'tags'],
+			keys: indexKeys,
             useExtendedSearch: true,
             includeScore: true,
         }, index);
+        this.state = 'ready'
     }
-    
+
     // Search method, accepts only strings, but support 
     // different searching methods as described in the Fuse 
     // docs: https://fusejs.io/api/query.html
@@ -46,11 +49,15 @@ class FuseSearchIndex{
         })
     }
 
-    public removeFile(file: IFuseFile) {
+    public removeFile(path: string) {
         // We can only remove files if the index is available
-        return this.searchIndex.remove(doc => {
-            return doc.created === file.created
-        })
+        try {
+            return this.searchIndex.remove(doc => {
+                return doc.path === path
+            })
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     public addFile(file: IFuseFile) {

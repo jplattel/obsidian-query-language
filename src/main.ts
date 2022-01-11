@@ -1,9 +1,7 @@
-import { MarkdownPreviewRenderer, MarkdownPreviewView, App, Notice, Plugin, Vault, MetadataCache, TFile, TAbstractFile, parseFrontMatterTags } from 'obsidian';
+import { MarkdownPreviewRenderer, MarkdownPreviewView, App, Notice, Plugin, Vault, MetadataCache, TFile, TAbstractFile, parseFrontMatterTags, CachedMetadata } from 'obsidian';
 import { SearchIndex, IFuseFile } from './search';
 import QueryResultRenderer from './renderer';
 import * as Yaml from 'yaml';
-import { parse } from 'path';
-
 
 export default class ObsidianQueryLanguagePlugin extends Plugin {
 	async onload() {
@@ -34,7 +32,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		// Refresh the single file in the index when renaming
 		this.registerEvent(
 			this.app.vault.on("rename", (file, oldPath) => {
-				this.refreshFile(file)
+				this.refreshFile(file, oldPath)
 			})
 		);
 
@@ -46,55 +44,71 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		// MarkdownPreviewRenderer.registerPostProcessor(QueryResultRenderer.postprocessor);
 	}
 
-	// Remove the postprocessor for OQL
+	// Remove the postprocessor on unload
 	onunload() {
 		// MarkdownPreviewRenderer.unregisterPostProcessor(QueryResultRenderer.postprocessor);
 	}
 
 	// Rebuild the search index 
-	buildIndex() {
+	async buildIndex() {
 		console.debug('[OQL] Initial building of search index..');
-		SearchIndex.buildIndex(this.app.vault.getMarkdownFiles().map(f => this.parseFile(f)))
+		SearchIndex.buildIndex(await Promise.all(this.app.vault.getMarkdownFiles().map(f => this.parseFile(f))))
 	}
 
-	// WIP, rebuilding the entire index is costly, refreshing the single edited file is more useful
-	refreshFile(file: TAbstractFile): void {
-		if (file instanceof TFile) {
-			// Remove the old document from the index (matching on path, is this the correct way? What if it changes?)
-			SearchIndex.removeFile(this.parseFile(file))
-			// Add the file to the index
-			SearchIndex.addFile(this.parseFile(file))
+	// Rebuilding the entire index is costly, refreshing the single edited file is more useful
+	async refreshFile(file: TAbstractFile, oldPath?: string): Promise<void> {
+		// Remove the old document from the index (matching on path, is this the correct way?)
+		if (oldPath && file instanceof TFile) {
+			let parsedFile = await this.parseFile(file)
+			SearchIndex.removeFile(oldPath)
+			SearchIndex.addFile(parsedFile)
+		// If we are just updating, parse the file again and refresh it
+		} else if (file instanceof TFile) {
+			let parsedFile = await this.parseFile(file)
+			SearchIndex.removeFile(parsedFile.path)
+			SearchIndex.addFile(parsedFile)
 		}
 	}
 
-	// Go from a TFile object to a TFuseFile, adding more metadata
-	parseFile(file: TFile): IFuseFile {
-		// Parse the metadata of the file
+	// Go from a TFile object to a TFuseFile, useful for indexing
+	async parseFile(file: TFile): Promise<IFuseFile> {
+		// Parse the metadata, tags & content of the file
 		let metadata = this.app.metadataCache.getFileCache(file)
+		let tags = await this.parseTags(metadata)
+		let content = await this.app.vault.read(file)
 		
+		// Return a better formatted file for indexing
+		return <IFuseFile> {
+			title: file.basename,
+			path: file.path,
+			content: content,
+			created: file.stat.ctime,
+			modified: file.stat.mtime,
+			tags: tags,
+		}
+	}
+
+	async parseTags(metadata: CachedMetadata) {
 		let tags: string[] = []
 		if (metadata) {
 			// Get the tags from the frontmatter
 			if (metadata?.frontmatter?.tags) {
 				tags = parseFrontMatterTags(metadata.frontmatter)
 			} 
-
 			// Also add the tags from the metadata object (these are present in document itself)
 			if (metadata?.tags) {
 				tags = tags.concat(metadata.tags.map(tag => tag.tag))
 			}
 		}
-		
-		// Return a better formatted file for indexing
-		return <IFuseFile> {
-			title: file.basename,
-			path: file.path,
-			content: file.cachedData,
-			created: file.stat.ctime,
-			modified: file.stat.mtime,
-			tags: tags,
-		}
+		return tags
+	}
 	
+	async search(query: string | Object) {
+		if (SearchIndex.state === 'ready') {
+			return SearchIndex.search(query);
+		} else {
+			throw Error("OQL SearchIndex is not ready yet...")
+		}
 	}
 }
 
