@@ -6,6 +6,12 @@ This is a plugin for Obsidian (https://obsidian.md) that allows you to query you
 
 ## Changelog
 
+- **2.1.1**
+    - Bugfix for frontmatter parsing (thanks [chipchipschips](https://github.com/chipschipschips))
+
+- **2.1.0**
+    - Better Liveview support
+
 - **2.0.0**
     - _Breaking change_: `template` key is now 'string|table|list'. Formatting is now done with the `format` key, as per examples.
     - Removed `this.cachedData` from index building, now reading the file instead.

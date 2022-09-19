@@ -13,3 +13,4 @@ Followin the same as: https://forum.obsidian.md/t/using-github-actions-to-releas
 
 This should trigger the Github workflow to build a release with the specified latest tag.
 
+
