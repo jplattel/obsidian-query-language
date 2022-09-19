@@ -93,7 +93,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 		if (metadata) {
 			// Get the tags from the frontmatter
 			if (metadata?.frontmatter?.tags) {
-				tags = parseFrontMatterTags(metadata.frontmatter)
+				tags = parseFrontMatterTags(metadata.frontmatter) ?? []
 			} 
 			// Also add the tags from the metadata object (these are present in document itself)
 			if (metadata?.tags) {
