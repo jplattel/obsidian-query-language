@@ -52,7 +52,7 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 	// Rebuild the search index 
 	async buildIndex() {
 		console.debug('[OQL] Initial building of search index..');
-		SearchIndex.buildIndex(await Promise.all(this.app.vault.getMarkdownFiles().map(f => this.parseFile(f))))
+		SearchIndex.buildIndex(await Promise.all(this.app.vault.getFiles().map(f => this.parseFile(f))))
 	}
 
 	// Rebuilding the entire index is costly, refreshing the single edited file is more useful
@@ -72,19 +72,30 @@ export default class ObsidianQueryLanguagePlugin extends Plugin {
 
 	// Go from a TFile object to a TFuseFile, useful for indexing
 	async parseFile(file: TFile): Promise<IFuseFile> {
-		// Parse the metadata, tags & content of the file
-		let metadata = this.app.metadataCache.getFileCache(file)
-		let tags = await this.parseTags(metadata)
-		let content = await this.app.vault.read(file)
-		
-		// Return a better formatted file for indexing
-		return <IFuseFile> {
-			title: file.basename,
-			path: file.path,
-			content: content,
-			created: file.stat.ctime,
-			modified: file.stat.mtime,
-			tags: tags,
+		if (file.extension === "md") {
+			// Parse the metadata, tags & content of the file
+			let metadata = this.app.metadataCache.getFileCache(file)
+			let tags = await this.parseTags(metadata)
+			let content = await this.app.vault.read(file)
+
+			// Return a better formatted file for indexing
+			return <IFuseFile> {
+				title: file.basename,
+				path: file.path,
+				content: content,
+				created: file.stat.ctime,
+				modified: file.stat.mtime,
+				tags: tags,
+			}
+		} else {
+			return <IFuseFile> {
+				title: file.basename,
+				path: file.path,
+				content: "",
+				created: file.stat.ctime,
+				modified: file.stat.mtime,
+				tags: [],
+			}
 		}
 	}
 
